@@ -225,13 +225,13 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     }
   }
 
-  Future<void> _sharePDFWithAttachment(Payment payment) async {
+  Future<void> _sharePDFWithAttachment(Payment payment, BuildContext context) async {
     final file = await _generatePDF(payment);
     if (file == null) return;
 
     try {
       if (!await file.exists()) {
-        _showSnackBar('Le fichier PDF n\'existe pas');
+        if (mounted) _showSnackBar('Le fichier PDF n\'existe pas');
         return;
       }
 
@@ -239,14 +239,31 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       
       final message = 'Bonjour,\n\nVeuillez trouver ci-joint votre quittance de loyer pour la période ${_formatMonth(payment.dueDate)}.\n\nCordialement.';
       
-      await Share.shareXFiles(
-        [xFile],
-        text: message,
-        subject: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
-      );
+      // Capturer le contexte avant l'await
+      final currentContext = context;
+      
+      // ignore: use_build_context_synchronously
+      final RenderBox? renderBox = currentContext.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        final position = renderBox.localToGlobal(Offset.zero);
+        final size = renderBox.size;
+        
+        await Share.shareXFiles(
+          [xFile],
+          text: message,
+          subject: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
+          sharePositionOrigin: Rect.fromLTWH(position.dx, position.dy, size.width, size.height),
+        );
+      } else {
+        await Share.shareXFiles(
+          [xFile],
+          text: message,
+          subject: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
+        );
+      }
     } catch (e) {
       debugPrint('Erreur de partage: $e');
-      _showSnackBar('Erreur lors du partage: $e');
+      if (mounted) _showSnackBar('Erreur lors du partage: $e');
     }
   }
 
@@ -256,7 +273,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
+      builder: (modalContext) {
         return Container(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -282,25 +299,23 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bouton Partager (avec pièce jointe et message pré-rempli)
               _buildSendButton(
                 icon: Icons.share,
                 label: 'Partager le PDF',
                 color: Colors.blue,
                 onPressed: () async {
-                  Navigator.pop(context);
-                  await _sharePDFWithAttachment(payment);
+                  Navigator.pop(modalContext);
+                  await _sharePDFWithAttachment(payment, modalContext);
                 },
               ),
               const SizedBox(height: 12),
 
-              // Bouton Ouvrir PDF
               _buildSendButton(
                 icon: Icons.picture_as_pdf,
                 label: 'Ouvrir le PDF',
                 color: Colors.green,
                 onPressed: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(modalContext);
                   final file = await _generatePDF(payment);
                   if (file != null) await PdfService.openPDF(file);
                 },
@@ -308,7 +323,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               const SizedBox(height: 16),
 
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(modalContext),
                 child: Text(
                   'Fermer',
                   style: GoogleFonts.urbanist(color: Colors.grey),
@@ -327,7 +342,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
+      builder: (modalContext) {
         return Container(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -357,25 +372,23 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bouton Partager (avec pièce jointe et message pré-rempli)
               _buildSendButton(
                 icon: Icons.share,
                 label: 'Partager le PDF',
                 color: Colors.blue,
                 onPressed: () async {
-                  Navigator.pop(context);
-                  await _sharePDFWithAttachment(payment);
+                  Navigator.pop(modalContext);
+                  await _sharePDFWithAttachment(payment, modalContext);
                 },
               ),
               const SizedBox(height: 12),
 
-              // Bouton Ouvrir PDF
               _buildSendButton(
                 icon: Icons.picture_as_pdf,
                 label: 'Ouvrir le PDF',
                 color: Colors.green,
                 onPressed: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(modalContext);
                   final file = await _generatePDF(payment);
                   if (file != null) await PdfService.openPDF(file);
                 },
@@ -383,7 +396,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               const SizedBox(height: 16),
 
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(modalContext),
                 child: Text(
                   'Fermer',
                   style: GoogleFonts.urbanist(color: Colors.grey),
