@@ -9,7 +9,7 @@ import '../../../core/services/pdf_service.dart';
 import '../../../core/widgets/summary_card.dart';
 import '../../buildings/models/property.dart';
 import '../models/tenant.dart';
-import '../../payments/models/payment.dart';
+import '../../../models/payment.dart';
 
 class TenantPaymentsScreen extends StatefulWidget {
   final Tenant tenant;

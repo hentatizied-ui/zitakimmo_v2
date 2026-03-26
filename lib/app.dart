@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'features/dashboard/screens/dashboard.dart';
 import 'features/buildings/screens/buildings_screen.dart';
 import 'features/tenants/screens/tenants_screen.dart';
-import 'features/payments/screens/payments_screen.dart';
+import 'features/simulation/screens/simulation_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
     const DashboardScreen(),
     const BuildingsScreen(),
     const TenantsScreen(),
-    const PaymentsScreen(),
+    const SimulationScreen(),
   ];
 
   @override
@@ -46,12 +46,14 @@ class _HomePageState extends State<HomePage> {
       body: _screens[_currentIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
+        onDestinationSelected: (index) {
+          setState(() => _currentIndex = index);
+        },
         destinations: const [
           NavigationDestination(icon: Icon(Icons.dashboard), label: 'Accueil'),
           NavigationDestination(icon: Icon(Icons.business), label: 'Immeubles'),
           NavigationDestination(icon: Icon(Icons.people), label: 'Locataires'),
-          NavigationDestination(icon: Icon(Icons.payment), label: 'Paiements'),
+          NavigationDestination(icon: Icon(Icons.calculate), label: 'Simulation'),
         ],
       ),
     );
