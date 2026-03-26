@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/pref_keys.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../../core/widgets/summary_card.dart';
@@ -33,10 +33,11 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     await _getTenantInfo();
     await _loadPayments();
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _getTenantInfo() async {
@@ -224,52 +225,26 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     }
   }
 
-  Future<void> _openMailApp(Payment payment) async {
-    final tenant = widget.tenant;
-    if (tenant.email == null || tenant.email!.isEmpty) {
-      _showSnackBar('Aucune adresse email renseignée pour ce locataire');
-      return;
-    }
+  Future<void> _sharePDFWithAttachment(Payment payment) async {
+    final file = await _generatePDF(payment);
+    if (file == null) return;
 
-    final subject = 'Quittance de loyer - ${_formatMonth(payment.dueDate)}';
-    final body = 'Bonjour,\n\nVeuillez trouver ci-joint votre quittance de loyer pour la période ${_formatMonth(payment.dueDate)}.\n\nCordialement.';
-    
-    final mailtoUri = Uri(
-      scheme: 'mailto',
-      path: tenant.email,
-      query: 'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
-    );
-
-    if (await canLaunchUrl(mailtoUri)) {
-      await launchUrl(mailtoUri, mode: LaunchMode.externalApplication);
-    } else {
-      _showSnackBar('Impossible d\'ouvrir l\'application Mail');
-    }
-  }
-
-  Future<void> _openWhatsApp(Payment payment) async {
-    final tenant = widget.tenant;
-    if (tenant.phone == null || tenant.phone!.isEmpty) {
-      _showSnackBar('Aucun numéro de téléphone renseigné pour ce locataire');
-      return;
-    }
-
-    String phone = tenant.phone!.trim().replaceAll(RegExp(r'\s+'), '');
-    if (!phone.startsWith('+')) {
-      if (phone.startsWith('0')) {
-        phone = '+33${phone.substring(1)}';
-      } else {
-        phone = '+33$phone';
+    try {
+      if (!await file.exists()) {
+        _showSnackBar('Le fichier PDF n\'existe pas');
+        return;
       }
-    }
 
-    final message = 'Bonjour, voici votre quittance de loyer pour ${_formatMonth(payment.dueDate)}.';
-    final whatsappUri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
-
-    if (await canLaunchUrl(whatsappUri)) {
-      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-    } else {
-      _showSnackBar('WhatsApp n\'est pas installé ou le numéro est invalide');
+      final xFile = XFile(file.path);
+      
+      await Share.shareXFiles(
+        [xFile],
+        text: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
+        subject: 'Quittance de loyer',
+      );
+    } catch (e) {
+      debugPrint('Erreur de partage: $e');
+      _showSnackBar('Erreur lors du partage: $e');
     }
   }
 
@@ -305,42 +280,19 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Ouverture directe
-              Text(
-                '💬 Ouvrir directement',
-                style: GoogleFonts.urbanist(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSendButton(
-                      icon: Icons.mail_outline,
-                      label: 'Ouvrir Mail',
-                      color: Colors.indigo,
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        await _openMailApp(payment);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildSendButton(
-                      icon: Icons.chat_bubble_outline,
-                      label: 'Ouvrir WhatsApp',
-                      color: Colors.teal,
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        await _openWhatsApp(payment);
-                      },
-                    ),
-                  ),
-                ],
+              // Bouton Partager (avec pièce jointe)
+              _buildSendButton(
+                icon: Icons.share,
+                label: 'Partager le PDF',
+                color: Colors.blue,
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await _sharePDFWithAttachment(payment);
+                },
               ),
               const SizedBox(height: 12),
 
-              // Bouton Ouvrir PDF
+              // Bouton Ouvrir PDF (sans pièce jointe)
               _buildSendButton(
                 icon: Icons.picture_as_pdf,
                 label: 'Ouvrir le PDF',
@@ -403,38 +355,15 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Ouverture directe
-              Text(
-                '💬 Ouvrir directement',
-                style: GoogleFonts.urbanist(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSendButton(
-                      icon: Icons.mail_outline,
-                      label: 'Ouvrir Mail',
-                      color: Colors.indigo,
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        await _openMailApp(payment);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildSendButton(
-                      icon: Icons.chat_bubble_outline,
-                      label: 'Ouvrir WhatsApp',
-                      color: Colors.teal,
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        await _openWhatsApp(payment);
-                      },
-                    ),
-                  ),
-                ],
+              // Bouton Partager (avec pièce jointe)
+              _buildSendButton(
+                icon: Icons.share,
+                label: 'Partager le PDF',
+                color: Colors.blue,
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await _sharePDFWithAttachment(payment);
+                },
               ),
               const SizedBox(height: 12),
 
