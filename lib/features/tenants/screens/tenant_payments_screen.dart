@@ -334,19 +334,48 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bouton Partager avec pièce jointe
-              _buildSendButton(
-                icon: Icons.share,
-                label: 'Partager le PDF',
-                color: Colors.blue,
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await _sharePDFWithAttachment(payment);
-                },
+              // === 1ère rangée : Partager avec pièce jointe (supprimé) ===
+              // Ces boutons sont supprimés car ils ne fonctionnent pas
+
+              // === 2ème rangée : Ouverture directe (sans pièce jointe) ===
+              Text(
+                '💬 Ouvrir directement',
+                style: GoogleFonts.urbanist(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSendButton(
+                      icon: Icons.mail_outline,
+                      label: 'Ouvrir Mail',
+                      color: Colors.indigo,
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _openMailApp(payment);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSendButton(
+                      icon: Icons.chat_bubble_outline,
+                      label: 'Ouvrir WhatsApp',
+                      color: Colors.teal,
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _openWhatsApp(payment);
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
 
-              // Bouton Ouvrir PDF
+              // Bouton Ouvrir PDF (ajouté)
               _buildSendButton(
                 icon: Icons.picture_as_pdf,
                 label: 'Ouvrir le PDF',
@@ -409,15 +438,41 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bouton Partager
-              _buildSendButton(
-                icon: Icons.share,
-                label: 'Partager le PDF',
-                color: Colors.blue,
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await _sharePDFWithAttachment(payment);
-                },
+              // === Ouverture directe ===
+              Text(
+                '💬 Ouvrir directement',
+                style: GoogleFonts.urbanist(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSendButton(
+                      icon: Icons.mail_outline,
+                      label: 'Ouvrir Mail',
+                      color: Colors.indigo,
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _openMailApp(payment);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSendButton(
+                      icon: Icons.chat_bubble_outline,
+                      label: 'Ouvrir WhatsApp',
+                      color: Colors.teal,
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _openWhatsApp(payment);
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
 
