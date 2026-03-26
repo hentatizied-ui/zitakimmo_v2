@@ -237,10 +237,12 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
 
       final xFile = XFile(file.path);
       
+      final message = 'Bonjour,\n\nVeuillez trouver ci-joint votre quittance de loyer pour la période ${_formatMonth(payment.dueDate)}.\n\nCordialement.';
+      
       await Share.shareXFiles(
         [xFile],
-        text: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
-        subject: 'Quittance de loyer',
+        text: message,
+        subject: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
       );
     } catch (e) {
       debugPrint('Erreur de partage: $e');
@@ -280,7 +282,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bouton Partager (avec pièce jointe)
+              // Bouton Partager (avec pièce jointe et message pré-rempli)
               _buildSendButton(
                 icon: Icons.share,
                 label: 'Partager le PDF',
@@ -292,7 +294,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Bouton Ouvrir PDF (sans pièce jointe)
+              // Bouton Ouvrir PDF
               _buildSendButton(
                 icon: Icons.picture_as_pdf,
                 label: 'Ouvrir le PDF',
@@ -355,7 +357,7 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bouton Partager (avec pièce jointe)
+              // Bouton Partager (avec pièce jointe et message pré-rempli)
               _buildSendButton(
                 icon: Icons.share,
                 label: 'Partager le PDF',
