@@ -45,7 +45,9 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final String? buildingsJson = prefs.getString(PrefKeys.buildings);
     if (buildingsJson != null && buildingsJson.isNotEmpty) {
-      final buildings = (jsonDecode(buildingsJson) as List).map((e) => Immeuble.fromJson(e)).toList();
+      final buildings = (jsonDecode(buildingsJson) as List)
+          .map((e) => Immeuble.fromJson(e))
+          .toList();
       final building = buildings.firstWhere(
         (b) => b.id == widget.tenant.buildingId,
         orElse: () => Immeuble(id: '', name: '', address: '', lots: []),
@@ -53,7 +55,16 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       _propertyAddress = building.address;
       final lot = building.lots.firstWhere(
         (l) => l.id == widget.tenant.lotId,
-        orElse: () => Lot(id: '', name: '', type: '', area: 0, rent: 0, rooms: 0, status: '', floor: ''),
+        orElse: () => Lot(
+          id: '',
+          name: '',
+          type: '',
+          area: 0,
+          rent: 0,
+          rooms: 0,
+          status: '',
+          floor: '',
+        ),
       );
       _monthlyRent = lot.rent;
       _lotName = lot.name;
@@ -65,7 +76,9 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     final String? paymentsJson = prefs.getString(PrefKeys.payments);
     List<Payment> existing = [];
     if (paymentsJson != null && paymentsJson.isNotEmpty) {
-      existing = (jsonDecode(paymentsJson) as List).map((e) => Payment.fromJson(e)).toList();
+      existing = (jsonDecode(paymentsJson) as List)
+          .map((e) => Payment.fromJson(e))
+          .toList();
       existing = existing.where((p) => p.tenantId == widget.tenant.id).toList();
     }
     final now = DateTime.now();
@@ -74,7 +87,8 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     DateTime current = DateTime(startDate.year, startDate.month, 5);
     while (current.isBefore(DateTime(now.year, now.month + 12, 5))) {
       final existingPayment = existing.firstWhere(
-        (p) => p.dueDate.year == current.year && p.dueDate.month == current.month,
+        (p) =>
+            p.dueDate.year == current.year && p.dueDate.month == current.month,
         orElse: () => Payment(
           id: '',
           tenantId: widget.tenant.id,
@@ -87,18 +101,22 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
           status: 'pending',
         ),
       );
-      payments.add(Payment(
-        id: existingPayment.id.isNotEmpty ? existingPayment.id : '${widget.tenant.id}_${current.year}_${current.month}',
-        tenantId: widget.tenant.id,
-        tenantName: widget.tenant.fullName,
-        buildingId: widget.tenant.buildingId ?? '',
-        lotId: widget.tenant.lotId ?? '',
-        lotName: _lotName ?? 'Lot ${widget.tenant.lotId}',
-        amount: _monthlyRent,
-        dueDate: current,
-        paymentDate: existingPayment.paymentDate,
-        status: existingPayment.status,
-      ));
+      payments.add(
+        Payment(
+          id: existingPayment.id.isNotEmpty
+              ? existingPayment.id
+              : '${widget.tenant.id}_${current.year}_${current.month}',
+          tenantId: widget.tenant.id,
+          tenantName: widget.tenant.fullName,
+          buildingId: widget.tenant.buildingId ?? '',
+          lotId: widget.tenant.lotId ?? '',
+          lotName: _lotName ?? 'Lot ${widget.tenant.lotId}',
+          amount: _monthlyRent,
+          dueDate: current,
+          paymentDate: existingPayment.paymentDate,
+          status: existingPayment.status,
+        ),
+      );
       current = DateTime(current.year, current.month + 1, 5);
     }
     setState(() => _payments = payments);
@@ -120,8 +138,10 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     await prefs.setString(PrefKeys.payments, jsonString);
   }
 
-  List<Payment> get _pending => _payments.where((p) => p.status == 'pending').toList();
-  List<Payment> get _paid => _payments.where((p) => p.status == 'paid').toList();
+  List<Payment> get _pending =>
+      _payments.where((p) => p.status == 'pending').toList();
+  List<Payment> get _paid =>
+      _payments.where((p) => p.status == 'paid').toList();
   double get _totalPending => _pending.fold(0, (s, p) => s + p.amount);
   double get _totalPaid => _paid.fold(0, (s, p) => s + p.amount);
 
@@ -132,7 +152,13 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Valider le paiement', style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.w600)),
+        title: Text(
+          'Valider le paiement',
+          style: GoogleFonts.urbanist(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,21 +170,33 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
             if (isLate)
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Row(
                   children: [
                     const Icon(Icons.warning, size: 16, color: Colors.red),
                     const SizedBox(width: 8),
-                    Text('Paiement en retard', style: GoogleFonts.urbanist(color: Colors.red)),
+                    Text(
+                      'Paiement en retard',
+                      style: GoogleFonts.urbanist(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
             const SizedBox(height: 16),
-            Text('Souhaitez-vous générer une quittance ?', style: GoogleFonts.urbanist(fontWeight: FontWeight.w500)),
+            Text(
+              'Souhaitez-vous générer une quittance ?',
+              style: GoogleFonts.urbanist(fontWeight: FontWeight.w500),
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
@@ -171,7 +209,12 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
               Navigator.pop(context);
               _confirmPayment(payment, generateReceipt: true);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             child: const Text('Valider et quittance'),
           ),
         ],
@@ -179,7 +222,10 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     );
   }
 
-  Future<void> _confirmPayment(Payment payment, {required bool generateReceipt}) async {
+  Future<void> _confirmPayment(
+    Payment payment, {
+    required bool generateReceipt,
+  }) async {
     final updatedPayment = Payment(
       id: payment.id,
       tenantId: payment.tenantId,
@@ -197,7 +243,12 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     await _savePayments();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Paiement validé pour ${_formatMonth(payment.dueDate)}'), backgroundColor: Colors.green),
+        SnackBar(
+          content: Text(
+            'Paiement validé pour ${_formatMonth(payment.dueDate)}',
+          ),
+          backgroundColor: Colors.green,
+        ),
       );
     }
     if (generateReceipt) _generateAndSendReceipt(updatedPayment);
@@ -206,7 +257,9 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
   Future<File?> _generatePDF(Payment payment) async {
     try {
       final month = _formatMonth(payment.dueDate);
-      final paymentDate = payment.paymentDate != null ? _formatDate(payment.paymentDate!) : _formatDate(DateTime.now());
+      final paymentDate = payment.paymentDate != null
+          ? _formatDate(payment.paymentDate!)
+          : _formatDate(DateTime.now());
       final file = await PdfService.generateAndSave(
         tenantName: payment.tenantName,
         propertyAddress: _propertyAddress ?? payment.lotName,
@@ -225,7 +278,10 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
     }
   }
 
-  Future<void> _sharePDFWithAttachment(Payment payment, BuildContext context) async {
+  Future<void> _sharePDFWithAttachment(
+    Payment payment,
+    BuildContext context,
+  ) async {
     final file = await _generatePDF(payment);
     if (file == null) return;
 
@@ -236,31 +292,15 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       }
 
       final xFile = XFile(file.path);
-      
-      final message = 'Bonjour,\n\nVeuillez trouver ci-joint votre quittance de loyer pour la période ${_formatMonth(payment.dueDate)}.\n\nCordialement.';
-      
-      // Capturer le contexte avant l'await
-      final currentContext = context;
-      
-      // ignore: use_build_context_synchronously
-      final RenderBox? renderBox = currentContext.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final position = renderBox.localToGlobal(Offset.zero);
-        final size = renderBox.size;
-        
-        await Share.shareXFiles(
-          [xFile],
-          text: message,
-          subject: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
-          sharePositionOrigin: Rect.fromLTWH(position.dx, position.dy, size.width, size.height),
-        );
-      } else {
-        await Share.shareXFiles(
-          [xFile],
-          text: message,
-          subject: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
-        );
-      }
+
+      final message =
+          'Bonjour,\n\nVeuillez trouver ci-joint votre quittance de loyer pour la période ${_formatMonth(payment.dueDate)}.\n\nCordialement.';
+
+      await Share.shareXFiles(
+        [xFile],
+        text: message,
+        subject: 'Quittance de loyer - ${_formatMonth(payment.dueDate)}',
+      );
     } catch (e) {
       debugPrint('Erreur de partage: $e');
       if (mounted) _showSnackBar('Erreur lors du partage: $e');
@@ -429,8 +469,18 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
 
   String _formatMonth(DateTime date) {
     const months = [
-      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+      'Janvier',
+      'Février',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Août',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Décembre',
     ];
     return '${months[date.month - 1]} ${date.year}';
   }
@@ -439,9 +489,9 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _getStatusText(String status, DateTime dueDate) {
@@ -464,13 +514,25 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.tenant.fullName, style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.w600)),
-            Text('Historique des paiements', style: GoogleFonts.urbanist(fontSize: 12)),
+            Text(
+              widget.tenant.fullName,
+              style: GoogleFonts.urbanist(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              'Historique des paiements',
+              style: GoogleFonts.urbanist(fontSize: 12),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -492,43 +554,117 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 8)],
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 8),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFF1E88E5).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.person, color: Color(0xFF1E88E5))),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.person, color: Color(0xFF1E88E5)),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: Text(widget.tenant.fullName, style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.w600))),
+              Expanded(
+                child: Text(
+                  widget.tenant.fullName,
+                  style: GoogleFonts.urbanist(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           if (widget.tenant.email != null && widget.tenant.email!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Row(children: [Icon(Icons.email, size: 16, color: Colors.grey), const SizedBox(width: 8), Expanded(child: Text(widget.tenant.email!, style: GoogleFonts.urbanist(fontSize: 13)))]),
+              child: Row(
+                children: [
+                  Icon(Icons.email, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.tenant.email!,
+                      style: GoogleFonts.urbanist(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
             ),
           if (widget.tenant.phone != null && widget.tenant.phone!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Row(children: [Icon(Icons.phone, size: 16, color: Colors.grey), const SizedBox(width: 8), Expanded(child: Text(widget.tenant.phone!, style: GoogleFonts.urbanist(fontSize: 13)))]),
+              child: Row(
+                children: [
+                  Icon(Icons.phone, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.tenant.phone!,
+                      style: GoogleFonts.urbanist(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
             ),
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Row(children: [Icon(Icons.apartment, size: 16, color: Colors.grey), const SizedBox(width: 8), Expanded(child: Text(_lotName ?? 'Lot non défini', style: GoogleFonts.urbanist(fontSize: 13)))]),
+            child: Row(
+              children: [
+                Icon(Icons.apartment, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _lotName ?? 'Lot non défini',
+                    style: GoogleFonts.urbanist(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Row(children: [Icon(Icons.calendar_today, size: 16, color: Colors.grey), const SizedBox(width: 8), Expanded(child: Text('Entrée : ${widget.tenant.startDate.day}/${widget.tenant.startDate.month}/${widget.tenant.startDate.year}', style: GoogleFonts.urbanist(fontSize: 13)))]),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Entrée : ${widget.tenant.startDate.day}/${widget.tenant.startDate.month}/${widget.tenant.startDate.year}',
+                    style: GoogleFonts.urbanist(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
           ),
           const Divider(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Loyer mensuel', style: GoogleFonts.urbanist(fontSize: 14, color: const Color(0xFF1E88E5))),
-              Text('${_monthlyRent.toStringAsFixed(2)} €', style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E88E5))),
+              Text(
+                'Loyer mensuel',
+                style: GoogleFonts.urbanist(
+                  fontSize: 14,
+                  color: const Color(0xFF1E88E5),
+                ),
+              ),
+              Text(
+                '${_monthlyRent.toStringAsFixed(2)} €',
+                style: GoogleFonts.urbanist(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E88E5),
+                ),
+              ),
             ],
           ),
         ],
@@ -541,9 +677,23 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Expanded(child: SummaryCard(title: 'À payer', amount: _totalPending, color: Colors.orange, icon: Icons.pending_actions)),
+          Expanded(
+            child: SummaryCard(
+              title: 'À payer',
+              amount: _totalPending,
+              color: Colors.orange,
+              icon: Icons.pending_actions,
+            ),
+          ),
           const SizedBox(width: 12),
-          Expanded(child: SummaryCard(title: 'Payé', amount: _totalPaid, color: Colors.green, icon: Icons.check_circle)),
+          Expanded(
+            child: SummaryCard(
+              title: 'Payé',
+              amount: _totalPaid,
+              color: Colors.green,
+              icon: Icons.check_circle,
+            ),
+          ),
         ],
       ),
     );
@@ -563,38 +713,98 @@ class _TenantPaymentsScreenState extends State<TenantPaymentsScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 4)],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.1),
+                blurRadius: 4,
+              ),
+            ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
                 Container(
-                  width: 50, height: 50,
-                  decoration: BoxDecoration(color: _getStatusColor(payment.status, payment.dueDate).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                  child: Icon(isPaid ? Icons.check_circle : (isLate ? Icons.warning : Icons.pending), color: _getStatusColor(payment.status, payment.dueDate), size: 28),
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(
+                      payment.status,
+                      payment.dueDate,
+                    ).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    isPaid
+                        ? Icons.check_circle
+                        : (isLate ? Icons.warning : Icons.pending),
+                    color: _getStatusColor(payment.status, payment.dueDate),
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_formatMonth(payment.dueDate), style: GoogleFonts.urbanist(fontSize: 16, fontWeight: FontWeight.w600)),
-                      Text(payment.formattedAmount, style: GoogleFonts.urbanist(fontSize: 14, color: Colors.grey)),
+                      Text(
+                        _formatMonth(payment.dueDate),
+                        style: GoogleFonts.urbanist(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        payment.formattedAmount,
+                        style: GoogleFonts.urbanist(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
                       if (isPaid && payment.paymentDate != null)
-                        Text('Payé le ${payment.paymentDate!.day}/${payment.paymentDate!.month}/${payment.paymentDate!.year}', style: GoogleFonts.urbanist(fontSize: 10, color: Colors.green)),
+                        Text(
+                          'Payé le ${payment.paymentDate!.day}/${payment.paymentDate!.month}/${payment.paymentDate!.year}',
+                          style: GoogleFonts.urbanist(
+                            fontSize: 10,
+                            color: Colors.green,
+                          ),
+                        ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: _getStatusColor(payment.status, payment.dueDate).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-                  child: Text(_getStatusText(payment.status, payment.dueDate), style: GoogleFonts.urbanist(fontSize: 12, fontWeight: FontWeight.w500, color: _getStatusColor(payment.status, payment.dueDate))),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(
+                      payment.status,
+                      payment.dueDate,
+                    ).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _getStatusText(payment.status, payment.dueDate),
+                    style: GoogleFonts.urbanist(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: _getStatusColor(payment.status, payment.dueDate),
+                    ),
+                  ),
                 ),
                 if (isPaid)
-                  IconButton(icon: const Icon(Icons.receipt, color: Color(0xFF1E88E5)), onPressed: () => _viewReceipt(payment), tooltip: 'Voir la quittance')
+                  IconButton(
+                    icon: const Icon(Icons.receipt, color: Color(0xFF1E88E5)),
+                    onPressed: () => _viewReceipt(payment),
+                    tooltip: 'Voir la quittance',
+                  )
                 else
-                  IconButton(icon: const Icon(Icons.payment, color: Colors.green), onPressed: () => _validatePayment(payment), tooltip: 'Valider le paiement'),
+                  IconButton(
+                    icon: const Icon(Icons.payment, color: Colors.green),
+                    onPressed: () => _validatePayment(payment),
+                    tooltip: 'Valider le paiement',
+                  ),
               ],
             ),
           ),
